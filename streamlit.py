@@ -2,18 +2,11 @@ import streamlit as st
 
 import pandas as pd
 import numpy as np
+from objects.user import User
 
 st.sidebar.header('Rentabilidad en Bienes Raices')
 seleccion = st.sidebar.radio('Tipos de servicio',('Prediccion de alquiler','Inversiones mas rentables'))
 
-distritos = ['Ancón', 'Ate Vitarte','Barranco','Breña',
-            'Carabayllo','Chaclacayo','Chorrillos','Cieneguilla','Comas','El Agustino','Independencia','La Molina',
-            'Jesús María','La Victoria','Lince','Los Olivos','Lurigancho','Lurín','Magdalena del Mar',
-            'Miraflores','Pachacamac','Pucusana','Pueblo Libre','Puente Piedra','Punta Hermosa','Punta Negra',
-            'Rímac','San Bartolo','San Borja','San Isidro','San Juan de Lurigancho','San Juan de Miraflores',
-            'San Luis','San Martin de Porres','San Miguel','Santa Anita','Santa Maria del Mar','Santa María del Mar',
-            'Santa Rosa','Santiago de Surco','Surquillo','Villa el Salvador','Villa Maria del Triunfo','Asia','Mala','Cañete',
-            'Magdalena','San Martín de Porres','San Antonio','Villa María del Triunfo','Callao']
 
 def main():
     if seleccion == 'Prediccion de alquiler':
@@ -31,7 +24,7 @@ def prediccion_alq():
                 Esto te va a permitir tener una idea de como valoriza el mercado tu casa/depa!.
                 Pero para eso tenemos que saber un poco del mismo :)   ''')
 
-    distrito = st.selectbox('¿En que distrito se encuentra?',distritos)
+    distrito = st.selectbox('¿En que distrito se encuentra?',User().distritos)
     m2 = st.number_input('¿Cuantos m² totales tiene?',value = 0,min_value = 0,step =1)
     m2_techados = st.number_input('¿Cuantos de estos m² son techados?',value = 0,min_value = 0,step = 1)
 
