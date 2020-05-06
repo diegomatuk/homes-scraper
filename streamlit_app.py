@@ -1,15 +1,101 @@
 import streamlit as st
 import webbrowser
+import pydeck as pdk
+import plotly.graph_objects as go
 
 import pandas as pd
 import numpy as np
 from objects.user import User
+import plotly.express as px
+
 from objects.dataframe_class import DataFrame_c
 import _pickle as cPickle
 
 st.sidebar.header('Rentabilidad en Bienes Raices')
 seleccion = st.sidebar.radio('Tipos de servicio',('Prediccion de alquiler','Inversiones mas rentables'))
 
+
+
+@st.cache
+def load_data():
+    a = pd.read_csv('outputs/output_houses.csv')
+    try:
+        del a['Unnamed: 0']
+        del a['Unnamed: 0.1']
+        del a['Unnamed: 0.1.1']
+    except:
+        pass
+    del a['new_longitude']
+    del a['new_latitude']
+    return a
+
+
+def chart(df):
+    top = df.sort_values(by = 'rentabilidad',ascending = False)
+    all_layer = pdk.Layer(
+            type="ScatterplotLayer",
+            data=df,
+            get_position="[longitude, latitude]",
+            radius_scale=6,
+            get_radius=23,
+            elevation_scale = 100,
+            get_fill_color=[200, 30, 0, 160],
+            pickable = True,
+            get_line_color=[0, 0, 0],
+            opacity = 0.75,
+            radiusMinPixels = 2,
+            radiusMaxPixels = 45,
+
+    )
+    color = pdk.Layer(
+            type="ScatterplotLayer",
+            data=top.iloc[:3,:],
+            get_position="[longitude, latitude]",
+            radius_scale=6,
+            get_radius=23,
+            opacity = 0.75,
+            elevation_scale = 100,
+            pickable = True,
+            get_fill_color = [7, 114, 255],
+            radiusMinPixels = 3.5,
+            radiusMaxPixels = 45,
+    )
+    midpoint = (np.average(df['latitude']), np.average(df['longitude']))
+    view = pdk.ViewState(latitude = midpoint[0], longitude= midpoint[1], zoom=10, bearing=0, pitch=0)
+
+    return pdk.Deck(map_style='mapbox://styles/mapbox/light-v9',initial_view_state= view,layers=[all_layer,color])
+
+
+
+def print_st(row,key):
+    temp = pd.DataFrame({'Ubicacion': [row['Ubicacion']],'Metros Cuadrados': [row['Metros cuadrados']],
+                    'Estacionamientos':[row.Parqueo],'Dormitorios':[row.Dormitorios],
+                    'Años de antiguedad':[row['Antiguedad del edificio']],
+                    'Precio de Venta': ['S/{0:,.0f}'.format(row.Venta)],
+                    'Rentabilidad prevista': ["{0:.3%}".format(row.rentabilidad)]})
+
+#     fig = go.Figure(data = [go.Table(header = dict(values = ['Ubicacion','Metros Cuadrados','Parqueo','Dormitorios','Años de antiguedad',
+#                                                                 'Precio','Rentabilidad prevista'],align = 'center'),
+#                             cells = dict(values = [ [temp['Ubicacion']],[temp['Metros Cuadrados']],[temp['Estacionamientos']],
+#                                                     [temp['Dormitorios']],[temp['Años de antiguedad']],[temp['Precio de Venta']],
+#                                                     [temp['Rentabilidad prevista']] ] ))])
+#
+#     fig.update_layout(
+#     title_text='Rentabilidad',
+# )
+
+    # st.plotly_chart(fig)
+    st.table(temp)
+    if st.button('Ir al anuncio',key = key):
+        webbrowser.open_new_tab(row['Link Pagina'])
+
+
+
+def print_data(df):
+    top = df.sort_values(by = 'rentabilidad')
+    data = top.iloc[:3,:]
+    # st.write(f'Distrito:{data['Ubicacion']}')
+    st.write()
 
 def main():
     if seleccion == 'Prediccion de alquiler':
@@ -66,29 +152,47 @@ def prediccion_alq():
 
 
 def rentabilidad():
-    df_class = DataFrame_c()
-    df = df_class.origin_df('outputs/houses/')
-    df['Distrito'] = df['Ubicacion'].apply(df_class.distritos_apply)
-    df['Antiguedad del edificio'] = df['Antiguedad del edificio'].apply(df_class.correc_antiquy)
-    df['Parque cercano'] = df['Parque cercano'].apply(df_class.correc_near)
-    df['Mantenimiento'] = df['Mantenimiento'].apply(df_class.correc_mant)
-    df['Parqueo'] = df['Parqueo'].apply(df_class.correc_parking)
-    df['Venta'] = df['Venta'].apply(df_class.correc_alquiler)
-    df['Metros cuadrados'] = df['Metros cuadrados'].apply(df_class.correc_m2)
-    df['Metros cuadrados techados'] = df['Metros cuadrados techados'].apply(df_class.correc_m2)
-    df['Dormitorios'] = df['Dormitorios'].apply(df_class.correc_dorms)
-    df['Piso en el que se encuentra'] = df['Piso en el que se encuentra'].apply(df_class.correc_floor)
 
-    del df['Piso en el que se encuentra']
-    df[['Metros cuadrados','Metros cuadrados techados','Dormitorios']] = df[['Metros cuadrados','Metros cuadrados techados','Dormitorios']].replace('No hay informacion',np.nan)
-    df['Metros cuadrados'] = pd.to_numeric(df['Metros cuadrados'])
-    df['Metros cuadrados techados'] = pd.to_numeric(df['Metros cuadrados techados'])
-    df['Dormitorios'] = pd.to_numeric(df['Dormitorios'])
-    df['Parqueo'] = pd.to_numeric(df['Parqueo'])
+    df = load_data()
+    df['rentabilidad'] = pd.to_numeric(df['rentabilidad'])
+    df = df[df['rentabilidad'] < 0.5]
+
+    points = df[['latitude','longitude']]
+    distrito = st.multiselect('Escoge un distrito',df['Distrito'].unique())
+    puntos = df[df['Distrito'].isin(distrito)]
+
+    if not distrito:
+        st.pydeck_chart(chart(df))
+        top = df.sort_values(by = 'rentabilidad',ascending = False)
+        for i in range(1,4):
+            rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
+            print_st(top.iloc[i],str(i))
+
+    else:
+        st.pydeck_chart(chart(puntos))
+        top = puntos.sort_values(by = 'rentabilidad',ascending = False)
+        for i in range(1,4):
+            print_st(top.iloc[i],str(i))
 
 
-    df = df[df['Venta'] > 45000]
-    st.dataframe(df)
+
+
+
+    # ola = df.iloc[:1,:]
+    # ola['html'] = ["<img src='" + r['Link imagen']
+    #     + """' style='display:block;margin-left:auto;margin-right:auto;border:0;'><div style='text-align:center'>"""
+    #     + "<br>" + "</div>"
+    #     for ir, r in ola.iterrows()]
+    #
+    # #show the list of images as a dataframe
+    # st.write(ola[['html']].to_html(escape=False), unsafe_allow_html=True)
+
+
+
+
+
+
+
 
 
 

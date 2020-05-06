@@ -103,6 +103,27 @@ class DataFrame_c():
         else:
             return np.ceil(x['Dormitorios']/3)
 
+    def pred_alquiler(self,x):
+        pred = User().compute(m2 = x['Metros cuadrados'],
+                            m2_techados = x['Metros cuadrados techados'],
+                            parking = x['Parqueo'],dorms = x['Dormitorios'],
+                            antiguedad = x['Antiguedad del edificio'],
+                            park_near = x['Parque cercano'], floor = 1,
+                            mantenimiento = x['Mantenimiento'], cant_pisos = 1,type = 'Casa',
+                            distrito = x['Distrito'])
+        return int(np.exp(pred))
+
+
+    def imp_alcabala(self,x):
+        if x['Antiguedad del edificio'] > 0:
+            if x['Venta'] < 10 * (4300):
+                return 0
+            else:
+                return (x['Venta'] - 10*(4300)) * 0.03
+        else:
+            return 0
+
+
 
 
 

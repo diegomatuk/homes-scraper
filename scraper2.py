@@ -23,7 +23,7 @@ antiquy_building = []
 park_near = []
 condo = []
 floor = []
-alquiler = []
+alquiler = []    #ALQUILER/VENTA
 mant = []
 link_pagina = []
 link_image = []
@@ -50,14 +50,19 @@ def juntar(lista):
     return string
 
 
+
+'''FIRST ITERATION --> PAGE 1-40
+SECOND --> 40-58
+THIRD --> 58-68'''
 #LOOP FOR PAGINATION
-num = [i for i in range(1,51) ]
+num = [i for i in range(68,100) ]
+
 for number in tqdm(num):
-    proyectos = urllib.request.urlopen(f'https://urbania.pe/buscar/alquiler-de-casas-en-lima?page={number}')
+    proyectos = urllib.request.urlopen(f'https://urbania.pe/buscar/venta-de-casas-en-lima?page={number}')
     soup = bs.BeautifulSoup(proyectos,'lxml')
     posting_card = soup.find_all('div',class_ = 'posting-card')
     temp = []
-    for i in tqdm(posting_card):
+    for i in (posting_card):
         anuncio = i.find_all('a',class_ = 'go-to-posting')
         referencia = anuncio[0]['href']
         temp.append(anuncio[0]['href'])  #se le tiene que sumar a urbania para scrapear el resto como .format
@@ -155,34 +160,30 @@ for number in tqdm(num):
 
 
 
-
 #############NO TOCAR
 
 #
-# del link_pagina[-1]
-len(link_pagina)
 
-
-[len(i) for i in all]
 
 
 df = pd.DataFrame({'Ubicacion':location,'Metros cuadrados':m2,'Metros cuadrados techados':m2_techados,
-                'Baños':baths,'Parqueo':parking,'Medio baños':half_baths,'Dormitorios':dorms,'Antiguedad del edificio':antiquy_building,
-                'Parque cercano':park_near,'Piso en el que se encuentra':floor,'Alquiler':alquiler,'Mantenimiento':mant,
+                'Parqueo':parking,'Medio baños':half_baths,'Dormitorios':dorms,'Antiguedad del edificio':antiquy_building,
+                'Parque cercano':park_near,'Piso en el que se encuentra':floor,'Venta':alquiler,'Mantenimiento':mant,
                 'Link Pagina':link_pagina,'Link imagen':link_image})
+
 
 
 # baths.append('Error en no se donde (arreglar)')
 
 df.shape
 
-df.to_csv('Datos/Datos_casas')
+df.to_csv('outputs/houses/data(68-77).csv')
 
 
 
-prueba = urllib.request.urlopen('https://urbania.pe/inmueble/alquiler-de-departamento-en-cercado-de-miraflores-miraflores-3-dormitorios-ascensor-13475320')
-prueba2 = bs.BeautifulSoup(prueba,'lxml')
+# prueba = urllib.request.urlopen('https://urbania.pe/inmueble/alquiler-de-departamento-en-cercado-de-miraflores-miraflores-3-dormitorios-ascensor-13475320')
+# prueba2 = bs.BeautifulSoup(prueba,'lxml')
 
 
-69/73
+# 69/73
 #PARK NEARBY AND FLOOR

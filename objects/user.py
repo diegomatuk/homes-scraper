@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import _pickle as cPickle
 
 
 
@@ -52,7 +52,7 @@ class User():
                     'Callao':'Callao_Luriganch_Ancon_Carabay_PuentePie',
                     'Puente Piedra':'Callao_Luriganch_Ancon_Carabay_PuentePie'}
         if distrito in temp.keys():
-            return temp[distrito]
+            return temp[distrito],temp
         else:
             return distrito,temp
 
@@ -78,9 +78,14 @@ class User():
         data.append(tipo[0])
         data.append(tipo[1])
         data = data + distrito
+        with open('outputs/lasso.pkl','rb') as file:
+            lasso = cPickle.load(file)
 
 
-        return np.sum(np.array(data) * np.array(self.coefs))
+
+        return lasso.predict([data])
+
+    
 
 
 
@@ -91,13 +96,5 @@ class User():
 user = User()
 
 
-lista = user.compute(190,190,2,3,19,0,8,578,1,'Departamento','Miraflores')
-
-
-lista
-# (list(zip(lista,user.coefs.columns.tolist())))
-
-
-
-
-pd.read_csv('outputs/lasso_coeficients.csv')
+lista = user.compute(120,120,2,2,0,0,5,480,1,'Departamento','Miraflores')
+int(np.exp(lista))
