@@ -33,7 +33,7 @@ df['Dormitorios'] = pd.to_numeric(df['Dormitorios'])
 df['Parqueo'] = pd.to_numeric(df['Parqueo'])
 
 df['Venta'] = df['Venta'].fillna(1)
-df['Dormitorios'] = df['Dormitorios'].fillna(1)
+df['Dormitorios'] = df['Dormitorios'].fillna(1) 
 df[df['Dormitorios'] == 0] = 1
 
 #m2 = m2 techados if m2=nan
